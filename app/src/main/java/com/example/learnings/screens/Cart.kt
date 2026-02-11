@@ -1,85 +1,76 @@
 package com.example.learnings.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.learnings.badge.AddingButton
-import com.example.learnings.badge.BadgeVariable
-import com.example.learnings.room.ProductDao
+import com.example.learnings.room.CartEntity
 
 @Composable
-fun CartItemCard(ID: Int, dao: ProductDao, badge: BadgeVariable) {
-    val product by dao.getById(ID).collectAsState(initial = null)
-
-    LaunchedEffect(product) {
-        println("DEBUG: Product for ID $ID updated to: $product")
+fun CartScreen(
+    modifier: Modifier = Modifier,
+    elements: List<CartEntity>,
+    onRemoveFromCart: (productId: Int) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), // 2 колонки
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        userScrollEnabled = true
+    ) {
+        items(elements) { element ->
+            CartCard(
+                cartItem = element,
+                onRemove = { onRemoveFromCart(element.productId) }
+            )
+        }
     }
+}
+@Composable
+fun CartCard(
+    cartItem: CartEntity,
+    onRemove: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .border(1.dp, Color.Black, shape = RoundedCornerShape(percent = 100)),
-        shape = RoundedCornerShape(percent = 100)
+            .padding(8.dp),
+        shape = RoundedCornerShape(8.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .weight(1f) // Takes up remaining space
-            ) {
-                Text(text = product?.title ?: "Loading (ID: $ID)...",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp)
-                Text(text = product?.description ?: "Please wait...",
-                    fontSize = 12.sp)
+            Column {
+                Text(text = "Product ID: ${cartItem.productId}", fontWeight = FontWeight.Bold)
+                Text(text = "Amount: ${cartItem.amount}")
             }
 
-            VerticalDivider(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = 2.dp),
-                color = Color.Black,
-                thickness = 1.dp
-            )
-
-            AddingButton(
-                item = badge,
-                modifier = Modifier.fillMaxHeight().width(80.dp).background(color= Color(
-                    57,
-                    232,
-                    67,
-                    255
+            IconButton(onClick = onRemove) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Remove from cart"
                 )
-                )
-            )
+            }
         }
     }
 }

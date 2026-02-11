@@ -9,14 +9,3 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.learnings.badge.BadgeVariable
 
-@Composable
-fun HomeScreen(badges:List<BadgeVariable>) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        FloatingBottomBar(
-            badges = badges,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
-        )
-    }
-}

@@ -6,9 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -17,13 +14,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import com.example.learnings.badge.BadgeVariable
 import com.example.learnings.room.DatabaseProvider
 import com.example.learnings.room.ProductEntity
-import com.example.learnings.screens.CartItemCard
-import com.example.learnings.screens.HomeScreen
+import com.example.learnings.screens.CartScreen
+import com.example.learnings.screens.PillMenu
+import com.example.learnings.screens.ShopScreen
 import com.example.learnings.ui.theme.LearningsTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,52 +30,49 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LearningsTheme {
+                // initialize data base
                 val db = DatabaseProvider.get(this)
-                val dao = db.productDao()
-
+                val shopDao = db.productDao()
+                val cartDao = db.cartDao()
+                //setups shop data base.
                 LaunchedEffect(Unit) {
-                    dao.clear()
-                    dao.insert(ProductEntity(title = "Телефон", description = "Android смартфон"))
-                    dao.insert(ProductEntity(title = "Планшет", description = "Большой экран"))
-                    dao.insert(ProductEntity(title = "Наушники", description = "Беспроводные"))
+                    shopDao.clear()
+                    shopDao.insert(ProductEntity(title = "Телефон", description = "Android смартфон"))
+                    shopDao.insert(ProductEntity(title = "Планшет", description = "Большой экран"))
+                    shopDao.insert(ProductEntity(title = "Наушники", description = "Беспроводные"))
+                    cartDao.clear()
                 }
-
-                val tHome = remember { BadgeVariable(initialCounter = 0, icon = Icons.Outlined.Home) }
-                val tShopCart = remember { BadgeVariable(initialCounter = 0, icon = Icons.Outlined.ShoppingCart) }
+                // Badge variables
+                val tHome =
+                    remember { BadgeVariable(initialCounter = 0, icon = Icons.Outlined.Home) }
+                val tShopCart = remember {
+                    BadgeVariable(
+                        initialCounter = 0,
+                        icon = Icons.Outlined.ShoppingCart
+                    )
+                }
+                // Make list of badges variables
                 val pillList = listOf(tHome, tShopCart)
-
-                val products by dao.getAll().collectAsState(initial = emptyList())
-
+                // Getting products from shop data base
+                val products by shopDao.getAll().collectAsState(initial = emptyList())
+                val cartItems by cartDao.getAllCartItems().collectAsState(initial = emptyList())
                 Box(modifier = Modifier.fillMaxSize()) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 32.dp, bottom = 80.dp) // Added top padding for edge-to-edge
-                    ) {
-                        items(products) { product ->
-                            CartItemCard(
-                                ID = product.id,
-                                dao = dao,
-                                badge = tShopCart
-                            )
+                    CartScreen(
+                        elements = cartItems,
+                        onRemoveFromCart = { id ->
+                            lifecycleScope.launch {
+                                cartDao.remove(id)
+                            }
                         }
-                    }
-                    HomeScreen(badges = pillList)
+                    )
+                    ShopScreen(
+                        products = products,
+                        badge = tShopCart,
+                        onAddToCart = { productId -> cartDao.addOrIncrement(productId) }
+                    )
+                    PillMenu(badges = pillList)
                 }
             }
         }
     }
 }
-
-//@Composable
-//fun Start(badges: List<BadgeVariable>) {
-//    Column(
-//        modifier = Modifier
-//            .verticalScroll(rememberScrollState())
-//            .padding(16.dp)
-//    ) {
-//        for (item in badges) {
-//            AddingButton(item)
-//        }
-//    }
-//}

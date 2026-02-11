@@ -15,17 +15,38 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @Composable
-fun AddingButton(item: BadgeVariable,modifier: Modifier = Modifier) {
+fun AddingToCartButton(item: BadgeVariable,
+                       modifier: Modifier = Modifier,
+                       onClickAction: suspend () -> Unit) {
+    val scope = rememberCoroutineScope()
     IconButton( onClick = {
         item.increment()
+        scope.launch {
+            onClickAction()
+        }
     }
     ,modifier = modifier) {
+        Icon(
+            imageVector = Icons.Outlined.Add,
+            contentDescription = "Add To cart",
+        )
+    }
+}
+@Composable
+fun AddingButton(item: BadgeVariable, modifier: Modifier = Modifier) {
+    IconButton( onClick = {
+        item.increment()
+
+    }
+        ,modifier = modifier) {
         Icon(
             imageVector = Icons.Outlined.Add,
             contentDescription = "Add To cart",
