@@ -56,7 +56,8 @@ class MainActivity : ComponentActivity() {
                         items(products) { product ->
                             CartItemCard(
                                 ID = product.id,
-                                dao = dao
+                                dao = dao,
+                                badge = tShopCart
                             )
                         }
                     }

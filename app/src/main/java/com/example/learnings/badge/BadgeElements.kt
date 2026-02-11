@@ -21,13 +21,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AddingButton(item: BadgeVariable) {
+fun AddingButton(item: BadgeVariable,modifier: Modifier = Modifier) {
     IconButton( onClick = {
         item.increment()
-    }) {
+    }
+    ,modifier = modifier) {
         Icon(
             imageVector = Icons.Outlined.Add,
-            contentDescription = "Add To ",
+            contentDescription = "Add To cart",
         )
     }
 }
